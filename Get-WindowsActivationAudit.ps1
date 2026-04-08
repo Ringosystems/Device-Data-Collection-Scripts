@@ -12,8 +12,8 @@
 # CONFIGURATION
 # ============================================================================
 
-$BlobBaseUrl = 'https://YOURSTORAGEACCOUNT.blob.core.windows.net/YOURCONTAINER'
-$SasToken    = '?sv=YOURSASTOKEN'
+$BlobBaseUrl = 'https://ldinfraopsintunesto8725.blob.core.windows.net/windows-activation-details'
+$SasToken    = '?sv=2025-07-05&spr=https&st=2026-04-08T16%3A34%3A48Z&se=2031-10-15T16%3A34%3A00Z&sr=c&sp=racwdlf&sig=nSkih5KJGKEEnhhyVLx6ibbFHND1Xq27ToxRyAvP6wk%3D'
 
 # ============================================================================
 # COLLECTION
