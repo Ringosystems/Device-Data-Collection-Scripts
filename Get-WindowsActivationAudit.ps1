@@ -365,17 +365,29 @@ Add-Line ''
 Add-Line '--- LOGGED-IN USER IDENTITY ---'
 try {
     # Method 1: Query the explorer.exe owner (interactive session user)
-    $explorerProcs = Get-WmiObject -Class Win32_Process -Filter "Name='explorer.exe'" -ErrorAction SilentlyContinue
     $interactiveUser = $null
-    if ($explorerProcs) {
-        foreach ($proc in $explorerProcs) {
-            $owner = $proc.GetOwner()
-            if ($owner.ReturnValue -eq 0) {
-                $interactiveUser = "$($owner.Domain)\$($owner.User)"
-                Add-Line "Interactive User:    $interactiveUser"
-                break
+    try {
+        # Use Get-CimInstance + Invoke-CimMethod which works in PS 5.1 and PS 7+
+        $explorerProcs = Get-CimInstance -ClassName Win32_Process -Filter "Name='explorer.exe'" -ErrorAction SilentlyContinue
+        if ($explorerProcs) {
+            foreach ($proc in $explorerProcs) {
+                $owner = Invoke-CimMethod -InputObject $proc -MethodName GetOwner -ErrorAction SilentlyContinue
+                if ($owner -and $owner.ReturnValue -eq 0) {
+                    $interactiveUser = "$($owner.Domain)\$($owner.User)"
+                    Add-Line "Interactive User:    $interactiveUser"
+                    break
+                }
             }
         }
+    } catch {
+        # Fallback for older systems: try quser
+        try {
+            $quserOutput = & quser 2>&1 | Out-String
+            if ($quserOutput -match '>\s*(\S+)') {
+                $interactiveUser = $Matches[1]
+                Add-Line "Interactive User:    $interactiveUser (via quser)"
+            }
+        } catch { }
     }
 
     # Method 2: Get UPN from Azure AD token cache / dsregcmd SSO state
